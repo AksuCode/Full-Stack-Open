@@ -1,3 +1,4 @@
+```mermaid
 sequenceDiagram
     participant browser
     participant server
@@ -34,3 +35,4 @@ sequenceDiagram
 
     Note right of browser: The browser executes the callback function that renders the notes
     Note right of server: [{content: 'okay', date: '2024-01-29T09:09:24.564Z'}, ...]
+```
