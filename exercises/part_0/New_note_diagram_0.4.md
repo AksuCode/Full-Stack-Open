@@ -39,7 +39,7 @@ sequenceDiagram
 
     browser->>server: GET https://studies.cs.helsinki.fi/exampleapp/data.json
     activate server
-    server-->>browser: The JSON file: [{content: 'okay', date: '2024-01-29T09:09:24.564Z'}, ...]
+    server-->>browser: The JSON file containing notes saved on the server: [{content: 'okay', date: '2024-01-29T09:09:24.564Z'}, ...]
     deactivate server
 
     Note right of browser: The browser executes the callback function that renders the notes
