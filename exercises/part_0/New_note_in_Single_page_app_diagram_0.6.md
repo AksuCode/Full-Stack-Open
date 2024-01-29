@@ -8,7 +8,9 @@ sequenceDiagram
     Note right of browser: New note is added to the list on the browser using Javascript
 
     browser->>server: POST https://studies.cs.helsinki.fi/exampleapp/new_note_spa
-
+    activate server
     Note right of server: Server receives the form data with name 'note' and some text as value
     Note right of server: Server adds that new note to a list of notes saved on the server
+    server-->>browser: Response status code 201
+    deactivate server
 ```
