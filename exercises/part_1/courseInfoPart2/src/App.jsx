@@ -4,12 +4,18 @@ const Header = (props) => {
   )
 }
 
+const Part = (props) => {
+  return (
+    <p>{props.part} {props.enumb}</p>
+  )
+}
+
 const Content = (props) => {
   return (
     <div>
-      <p>{props.parts[0]} {props.enumbs[0]}</p>
-      <p>{props.parts[1]} {props.enumbs[1]}</p>
-      <p>{props.parts[2]} {props.enumbs[2]}</p>
+      <Part part={props.parts[0]} enumb={props.enumbs[0]}/>
+      <Part part={props.parts[1]} enumb={props.enumbs[1]}/>
+      <Part part={props.parts[2]} enumb={props.enumbs[2]}/>
     </div>
   )
 }
