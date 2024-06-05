@@ -10,24 +10,31 @@ const Button = ({handleClick, text}) => (
   </button>
 )
 
-const DisplayStat = ({stat, number, unit}) => (
-  <div>{stat} {number} {unit}</div>
+const StatisticLine = ({text, value, unit}) => (
+  <tr><td>{text}</td><td>{value} {unit}</td></tr>
 )
 
 const Statistics = ({good, neutral, bad}) => {
 
   const numberOfFeedback = good + neutral + bad
 
-  return (
-    <div>
-      <DisplayStat stat="good" number={good}/>
-      <DisplayStat stat="neutral" number={neutral}/>
-      <DisplayStat stat="bad" number={bad}/>
-      <DisplayStat stat="all" number={numberOfFeedback}/>
-      <DisplayStat stat="average" number={(good - bad)/numberOfFeedback}/>
-      <DisplayStat stat="positive" number={good/numberOfFeedback} unit='%'/>
-    </div>
-  )
+  if (numberOfFeedback > 0) {
+    return (
+      <table>
+        <tbody>
+          <StatisticLine text="good" value={good}/>
+          <StatisticLine text="neutral" value={neutral}/>
+          <StatisticLine text="bad" value={bad}/>
+          <StatisticLine text="all" value={numberOfFeedback}/>
+          <StatisticLine text="average" value={(good - bad)/numberOfFeedback}/>
+          <StatisticLine text="positive" value={100 * good/numberOfFeedback} unit='%'/>
+        </tbody>
+      </table>
+    )
+  } else {
+    return <div>No feedback given</div>
+  }
+
 }
 
 const App = () => {
