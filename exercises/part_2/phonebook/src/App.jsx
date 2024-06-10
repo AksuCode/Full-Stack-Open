@@ -1,4 +1,5 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import axios from 'axios'
 
 const Filter = ({filterInput, filterInputHandler}) => (
   <form>
@@ -17,29 +18,35 @@ const PersonForm = ({personHandler, nameInput, nameInputHandler, numbInput, numb
 const Persons = ({persons, filter}) => (
   <div>
     {persons.filter(person => person.name.toLowerCase().slice(0, filter.length) === filter.toLowerCase()).map(person => 
-      <p key={person.name}>{person.name} {person.numb}</p>
+      <p key={person.name}>{person.name} {person.number}</p>
     )}
   </div>
 )
 
 const App = () => {
-  const [persons, setPersons] = useState([
-    { name: 'Arto Hellas', numb: '040-123456', id: 1 },
-    { name: 'Ada Lovelace', numb: '39-44-5323523', id: 2 },
-    { name: 'Dan Abramov', numb: '12-43-234345', id: 3 },
-    { name: 'Mary Poppendieck', numb: '39-23-6423122', id: 4 }
-  ]) 
+  const [persons, setPersons] = useState([]) 
   const [newName, setNewName] = useState('')
   const [newNumb, setNewNumb] = useState('')
   const [newFilt, setNewFilt] = useState('')
 
+
+  const hook = () => {
+    axios
+    .get('http://localhost:3001/persons')
+    .then(response => {
+      setPersons(response.data)
+    })
+  }
+
+  useEffect(hook, [])
+
   const addPerson = (event) => {
     event.preventDefault()
     
-    const newPerson = {name:newName, numb:newNumb}
+    const newPerson = {name:newName, number:newNumb}
     if (persons.map(obj => obj.name).includes(newPerson.name)) {
       window.alert(`${newName} is alredy added to phonebook`)
-    } else if (persons.map(obj => obj.numb).includes(newPerson.numb)) {
+    } else if (persons.map(obj => obj.number).includes(newPerson.number)) {
       window.alert(`${newNumb} is alredy added to phonebook`)
     } else {
       setPersons(persons.concat(newPerson))
