@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
-import axios from 'axios'
+
+import personService from './services/persons'
 
 const Filter = ({filterInput, filterInputHandler}) => (
   <form>
@@ -15,10 +16,10 @@ const PersonForm = ({personHandler, nameInput, nameInputHandler, numbInput, numb
   </form>
 )
 
-const Persons = ({persons, filter}) => (
+const Persons = ({persons, filter, deleteHandler}) => (
   <div>
     {persons.filter(person => person.name.toLowerCase().slice(0, filter.length) === filter.toLowerCase()).map(person => 
-      <p key={person.name}>{person.name} {person.number}</p>
+      <div key={person.id}>{person.name} {person.number} <button onClick={() => deleteHandler(person.name, person.id)}>delete</button></div>
     )}
   </div>
 )
@@ -29,10 +30,8 @@ const App = () => {
   const [newNumb, setNewNumb] = useState('')
   const [newFilt, setNewFilt] = useState('')
 
-
   const hook = () => {
-    axios
-    .get('http://localhost:3001/persons')
+    personService.getAll()
     .then(response => {
       setPersons(response.data)
     })
@@ -41,19 +40,31 @@ const App = () => {
   useEffect(hook, [])
 
   const addPerson = (event) => {
-    event.preventDefault()
+    // Make number addition entirely server side (It is easier to let server generate ids). 2.12
+
+    //event.preventDefault()
     
     const newPerson = {name:newName, number:newNumb}
     if (persons.map(obj => obj.name).includes(newPerson.name)) {
-      window.alert(`${newName} is alredy added to phonebook`)
-    } else if (persons.map(obj => obj.number).includes(newPerson.number)) {
-      window.alert(`${newNumb} is alredy added to phonebook`)
+      if (window.confirm(`${newName} is alredy added to phonebook. Replace the old number with a new one?`)) {
+        const oldPerson = persons.find(person => person.name === newName)
+        personService.changeNumber(oldPerson, newNumb)
+      }
     } else {
-      setPersons(persons.concat(newPerson))
+      // setPersons(persons.concat(newPerson))
+      personService.create(newPerson)
     }
 
     setNewName('')
     setNewNumb('')
+  }
+
+  const deletePerson = (name, id) => {
+    if (window.confirm(`Delete ${name}?`)) {
+      const newPersons = persons.filter(person => person.id !== id)
+      setPersons(newPersons)
+      personService.deleteUsingID(id)
+    }
   }
 
   const handleNameChange = (event) => {
@@ -77,7 +88,7 @@ const App = () => {
       <PersonForm personHandler={addPerson} nameInput={newName} nameInputHandler={handleNameChange} numbInput={newNumb} numbInputHandler={handleNumbChange}/>
 
       <h2>Numbers</h2>
-      <Persons persons={persons} filter={newFilt}/>
+      <Persons persons={persons} filter={newFilt} deleteHandler={deletePerson}/>
     </div>
   )
 }
