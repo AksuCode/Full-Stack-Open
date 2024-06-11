@@ -2,6 +2,8 @@ import { useState, useEffect } from 'react'
 
 import personService from './services/persons'
 
+import './index.css'
+
 const Filter = ({filterInput, filterInputHandler}) => (
   <form>
     <div>filter shown with<input value={filterInput} onChange={filterInputHandler}/></div>
@@ -24,11 +26,37 @@ const Persons = ({persons, filter, deleteHandler}) => (
   </div>
 )
 
+const Notification = ({ message }) => {
+  if (message === null) {
+    return null
+  }
+
+  return (
+    <div className='notif'>
+      {message}
+    </div>
+  )
+}
+
+const Error = ({ message }) => {
+  if (message === null) {
+    return null
+  }
+
+  return (
+    <div className='error'>
+      {message}
+    </div>
+  )
+}
+
 const App = () => {
   const [persons, setPersons] = useState([]) 
   const [newName, setNewName] = useState('')
   const [newNumb, setNewNumb] = useState('')
   const [newFilt, setNewFilt] = useState('')
+  const [notifMessage, setNotifMessage] = useState(null)
+  const [errorMessage, setErrorMessage] = useState(null)
 
   const hook = () => {
     personService.getAll()
@@ -40,23 +68,43 @@ const App = () => {
   useEffect(hook, [])
 
   const addPerson = (event) => {
-    // Make number addition entirely server side (It is easier to let server generate ids). 2.12
 
-    //event.preventDefault()
-    
+    event.preventDefault()
+
     const newPerson = {name:newName, number:newNumb}
     if (persons.map(obj => obj.name).includes(newPerson.name)) {
       if (window.confirm(`${newName} is alredy added to phonebook. Replace the old number with a new one?`)) {
         const oldPerson = persons.find(person => person.name === newName)
         personService.changeNumber(oldPerson, newNumb)
+                     .then(response => {
+                        setNotifMessage(`Changed ${newName}`)
+                        setTimeout(() => {
+                          setNotifMessage(null)
+                        }, 5000)
+                     })
+                     .catch(error => {
+                        setErrorMessage(`Information of ${newName} has alredy been removed from server`)
+                        setTimeout(() => {
+                          setErrorMessage(null)
+                        }, 5000)
+                        setPersons(persons.filter(person => person.name !== newName))
+                     })
       }
     } else {
-      // setPersons(persons.concat(newPerson))
       personService.create(newPerson)
+                   .then(response => {
+                    setPersons(persons.concat(response.data))
+                   })
+
+      setNotifMessage(`Added ${newName}`)
+      setTimeout(() => {
+        setNotifMessage(null)
+      }, 5000)
     }
 
     setNewName('')
     setNewNumb('')
+
   }
 
   const deletePerson = (name, id) => {
@@ -82,6 +130,8 @@ const App = () => {
   return (
     <div>
       <h2>Phonebook</h2>
+      <Error message={errorMessage}/>
+      <Notification message={notifMessage}/>
       <Filter filterInput={newFilt} filterInputHandler={handleFiltChange}/>
 
       <h2>add a new</h2>
