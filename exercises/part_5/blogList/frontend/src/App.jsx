@@ -1,6 +1,9 @@
 import { useState, useEffect } from 'react'
 
 import Blog from './components/Blog'
+import BlogForm from './components/BlogForm'
+import Togglable from './components/Togglable'
+
 import blogService from './services/blogs'
 import loginService from './services/login'
 import userService from './services/users'
@@ -11,17 +14,20 @@ const App = () => {
   const [password, setPassword] = useState('')
   const [name, setName] = useState('')
   const [user, setUser] = useState(null)
-  const [title, setTitle] = useState('')
-  const [author, setAuthor] = useState('')
-  const [url, setUrl] = useState('')
   const [notif, setNotif] = useState(null)
 
   useEffect(() => {
-    console.log("Hook loaded")
     const loggedUserJSON = window.localStorage.getItem('loggedUser')
     if(loggedUserJSON) {
       const user = JSON.parse(loggedUserJSON)
+      blogService.setToken(user.token)
       setUser(user)
+      blogService.getAll().then(blogs =>
+        setBlogs( blogs )
+      )
+      userService.getUserByUsername(user.username).then(user => 
+        setName(user.name)
+      )
     }
   }, [])
 
@@ -49,30 +55,60 @@ const App = () => {
   }
 
   const handleLogout = () => {
+    console.log('Logged out')
     window.localStorage.removeItem('loggedUser')
     setUser(null)
     setName('')
   }
 
-  const handleBlogCreation = async (event) => {
-    event.preventDefault()
-    
-    const newBlog = {
-      title: title,
-      author: author,
-      url: url
-    }
+  const handleLike = (blogObject) => {
+    blogService
+      .like(blogObject)
+      .then(response => {
+        let likedBlogTitle = ''
+        const modifiedBlogs = blogs.map(mblog => {
+          if (mblog.id === blogObject.id) {
+            likedBlogTitle = mblog.title
+            const tmpBlog = mblog
+            tmpBlog.likes = response.likes
+            return tmpBlog
+          }
+          return mblog
+        })
+        setBlogs(modifiedBlogs)
+        setNotif(`Liked blog ${likedBlogTitle}`)
+      })
+      .catch(error => {
+        setNotif(`Liking blog failed`)
+      })
+  }
 
-    const addedBlog = await blogService.create(newBlog)
-    if (addedBlog) {
-      setBlogs(blogs.concat(addedBlog))
-      setTitle('')
-      setAuthor('')
-      setUrl('')
-      setNotif(`a new blog ${addedBlog.title} by ${addedBlog.author} added`)
-    } else {
-      setNotif('Failed to add blog')
+  const handleDelete = (blogObject) => {
+    if (window.confirm(`Remove blog ${blogObject.title} by ${blogObject.author}`)) {
+      blogService
+        .deleteBlog(blogObject)
+        .then(response => {
+          setBlogs(blogs.filter(blog => blog.id !== blogObject.id))
+          setNotif(`Blog ${blogObject.title} deleted`)
+        })
+        .catch(error => {
+          setNotif("Could not delete blog. You might not be authorized.")
+        })
     }
+  }
+
+  const createBlog = (newBlog) => {
+    blogService
+      .create(newBlog)
+      .then(addedBlog => {
+        const tmpBlog = addedBlog
+        tmpBlog.user = {name:user.name}
+        setBlogs(blogs.concat(tmpBlog))
+        setNotif(`a new blog ${tmpBlog.title} by ${tmpBlog.author} added`)
+      })
+      .catch(error => {
+        setNotif(`Failed to add blog`)
+      })
   }
 
   const loginForm = () => (
@@ -106,29 +142,20 @@ const App = () => {
     <>
       <h2>blogs</h2>
       <p>{name} logged in<button type="submit" onClick={handleLogout}>logout</button></p>
-      <form onSubmit={handleBlogCreation}>
-        <div>
-          title:
-          <input type="text" value={title} onChange={({target}) => setTitle(target.value)}/>
-        </div>
-        <div>
-          author:
-          <input type="text" value={author} onChange={({target}) => setAuthor(target.value)}/>
-        </div>
-        <div>
-          url:
-          <input type="text" value={url} onChange={({target}) => setUrl(target.value)}/>
-        </div>
-        <button type="submit">create</button>
-        </form>
-      {blogs.map(blog =>
-        <Blog key={blog.id} blog={blog} />
-      )}
+      <Togglable buttonLabel={'new blog'}>
+        <BlogForm createBlog={createBlog}/>
+      </Togglable>
+      {blogs
+        .sort((blogA, blogB) => blogB.likes - blogA.likes)
+        .map(blog => 
+          <Blog key={blog.id} blog={blog} like={handleLike} deleteBlog={handleDelete} createdByThisUser={blog.user.username === user.username}/>
+        )
+      }
     </>
   )
 
   const displayNotification = () => {
-    
+
     setTimeout(() => {
       setNotif(null)
     }, 5000)
