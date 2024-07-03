@@ -79,7 +79,7 @@ const App = () => {
         setNotif(`Liked blog ${likedBlogTitle}`)
       })
       .catch(error => {
-        setNotif(`Liking blog failed`)
+        setNotif('Liking blog failed')
       })
   }
 
@@ -92,7 +92,7 @@ const App = () => {
           setNotif(`Blog ${blogObject.title} deleted`)
         })
         .catch(error => {
-          setNotif("Could not delete blog. You might not be authorized.")
+          setNotif('Could not delete blog. You might not be authorized.')
         })
     }
   }
@@ -107,7 +107,7 @@ const App = () => {
         setNotif(`a new blog ${tmpBlog.title} by ${tmpBlog.author} added`)
       })
       .catch(error => {
-        setNotif(`Failed to add blog`)
+        setNotif('Failed to add blog')
       })
   }
 
