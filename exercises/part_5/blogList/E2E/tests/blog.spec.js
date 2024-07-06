@@ -97,47 +97,54 @@ describe('Blog app', () => {
         await expect(page.getByText('delete')).not.toBeVisible()
       })
 
-      test('blog list arranged in order of likes', async ({ page, request }) => {
+      test('blog list arranged in order of likes', async ({ page }) => {
+
+        const blog1 = page.getByTitle('Test blog')
 
         await page.getByTestId('title').fill('Test 2 blog')
         await page.getByTestId('author').fill('Tester')
         await page.getByTestId('url').fill('www.test2.fi')
-        await page.getByTestId('blogCreateButton').click()        
+        await page.getByTestId('blogCreateButton').click()
 
+        const blog2 = page.getByTitle('Test 2 blog')
+        
         await page.getByTestId('title').fill('Test 3 blog')
         await page.getByTestId('author').fill('Tester')
         await page.getByTestId('url').fill('www.test3.fi')
         await page.getByTestId('blogCreateButton').click()
 
-        await request.put('http://localhost:3001/api/blogs', {
-          data: {
-            name: 'Teemu Teekkari',
-            username: 'teemuTTK',
-            password: 'salasana'
-          }
-        })
+        const blog3 = page.getByTitle('Test 3 blog')
 
+        await expect(blog1).toBeVisible()
+        await expect(blog2).toBeVisible()
+        await expect(blog3).toBeVisible()
 
+        await blog1.getByRole('button', {name: 'view'}).click()
+        await blog2.getByRole('button', {name: 'view'}).click()
+        await blog3.getByRole('button', {name: 'view'}).click()
 
-        const views = await page.getByRole('button', {name: 'view'}).all()
+        await blog3.getByText('like').click()
 
-        for (const view of views) {
-          await view.click()
-          await view.waitFor()
-        }
+        const [test_blog1, test_blog2, test_blog3] = await page.getByTestId('blog').all()
 
-        const [blog1, blog2, blog3] = await page.getByTestId('blog').all()
+        expect(await blog1.getAttribute('title')).toEqual(await test_blog2.getAttribute('title'))
+        expect(await blog2.getAttribute('title')).toEqual(await test_blog3.getAttribute('title'))
+        expect(await blog3.getAttribute('title')).toEqual(await test_blog1.getAttribute('title'))
 
+        await blog2.getByText('like').click()
+        await blog2.getByText('like').click()
         await blog2.getByText('like').click()
         await blog2.getByText('like').click()
 
         await blog1.getByText('like').click()
+        await blog1.getByText('like').click()
+        await blog1.getByText('like').click()
 
-        const [new_blog1, new_blog2, new_blog3] = await page.getByTestId('blog').all()
+        const [test2_blog1, test2_blog2, test2_blog3] = await page.getByTestId('blog').all()
 
-        expect(blog1 === new_blog2).toBeTruthy()
-        expect(blog2 === new_blog1).toBeTruthy()
-        expect(blog3 === new_blog3).toBeTruthy()
+        expect(await blog1.getAttribute('title')).toEqual(await test2_blog2.getAttribute('title'))
+        expect(await blog2.getAttribute('title')).toEqual(await test2_blog1.getAttribute('title'))
+        expect(await blog3.getAttribute('title')).toEqual(await test2_blog3.getAttribute('title'))
 
       })
 
