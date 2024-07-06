@@ -102,7 +102,7 @@ const App = () => {
       .create(newBlog)
       .then(addedBlog => {
         const tmpBlog = addedBlog
-        tmpBlog.user = {name:user.name}
+        tmpBlog.user = {username:user.username, name:user.name}
         setBlogs(blogs.concat(tmpBlog))
         setNotif(`a new blog ${tmpBlog.title} by ${tmpBlog.author} added`)
       })
@@ -118,6 +118,7 @@ const App = () => {
         <div>
           username
             <input
+            data-testid={'username'}
             type="text"
             value={username}
             name="Username"
@@ -127,13 +128,14 @@ const App = () => {
         <div>
           password
             <input
+            data-testid={'password'}
             type="password"
             value={password}
             name="Password"
             onChange={({ target }) => setPassword(target.value)}
           />
         </div>
-        <button type="submit">login</button>
+        <button data-testid={'loginButton'} type="submit">login</button>
       </form>
     </>  
   )
@@ -162,7 +164,7 @@ const App = () => {
 
     return (
       <>
-        <div><b>{notif}</b></div>
+        <div data-testid={'notification'}><b>{notif}</b></div>
       </>
     )
 
